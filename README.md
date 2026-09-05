@@ -72,6 +72,56 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
 The execution-policy change above applies only to the current PowerShell process.
 
+## Automatic watcher
+
+`Watch-ChatGPT-Overlays.ps1` monitors only top-level windows owned by running
+`ChatGPT` processes. When a new matching overlay window appears and remains stable
+for several samples, it runs the one-shot fix once. It also repairs a window again
+if its native size or extended style changes. It does not repeatedly toggle a
+window whose state has not changed.
+
+Test one watcher pass in a visible PowerShell window:
+
+```powershell
+.\Watch-ChatGPT-Overlays.ps1 -RunOnce -NoLog -StartupDelaySeconds 0 -StableSamples 1
+```
+
+Install the watcher for the current Windows user:
+
+```powershell
+.\Install-Watcher.ps1
+```
+
+The installer creates a limited, current-user scheduled task named
+`ChatGPT Overlay Fix Watcher`, starts it immediately, and configures it to start
+again when that user logs on. It does not request administrator privileges.
+
+Logs are written to:
+
+```text
+%LOCALAPPDATA%\ChatGPTOverlayFix\watcher.log
+```
+
+The watcher rotates this file to `watcher.previous.log` when it reaches 1 MB.
+
+Run the local contract tests with:
+
+```powershell
+.\tests\Test-ScriptContracts.ps1
+```
+
+Remove the scheduled task:
+
+```powershell
+.\Uninstall-Watcher.ps1
+```
+
+The uninstall script leaves logs in place by default. To remove them as well:
+
+```powershell
+.\Uninstall-Watcher.ps1 -RemoveLog
+```
+
 ## Example output
 
 ```text
