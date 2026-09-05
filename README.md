@@ -145,6 +145,8 @@ and logs to:
 
 The log is rotated when it reaches approximately 1 MB; the previous log is kept as `Watcher.log.old`.
 
+ChatGPT version tracking is based on the currently running `ChatGPT` process, not on an installed package found on disk. A ChatGPT update is therefore detected the next time the updated app is started.
+
 If the detected ChatGPT version changes, the watcher records the change and shows a notification. The workaround remains enabled.
 
 ## How the workaround works
