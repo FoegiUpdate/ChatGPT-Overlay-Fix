@@ -1,162 +1,226 @@
 # ChatGPT Overlay Fix
 
-A PowerShell workaround for restoring mouse interaction with floating overlays in the ChatGPT/Codex desktop app on Windows.
+A PowerShell workaround for broken mouse interaction with floating ChatGPT overlays on Windows, including the **Pet** and **Voice widget**.
 
-The workaround has been tested with the floating **Pet** and **Voice widget** when they become visible but no longer respond correctly to mouse input.
+**Version 3.0.0 adds an optional automatic watcher, tray icon and autostart support.**
 
-## Problem
+If you only want to run the workaround once manually, you only need **`Fix-ChatGPT-Overlays.ps1`**.
 
-The ChatGPT/Codex desktop app on Windows can enter a state where floating overlay windows stop receiving mouse input correctly.
+## Choose how you want to use it
 
-Typical symptoms include:
+### Manual one-time fix
 
-* The Pet is visible and animated but cannot be clicked or dragged.
-* Mouse clicks may pass through the Pet to the application underneath.
-* The Voice widget may also become impossible to drag.
-* Restarting the ChatGPT app can cause the problem to return.
+Download only:
 
-The underlying Pet issue is tracked upstream as:
+- [`Fix-ChatGPT-Overlays.ps1`](Fix-ChatGPT-Overlays.ps1)
 
-**openai/codex#41513 — `[Windows][Pets] Built-in and custom floating pets become click-through and cannot be dragged`**
+Start ChatGPT, make sure the affected overlay is visible, then run:
 
-Relevant testing and workaround discussion can also be found in **issue comment 5538221946** in that issue.
+```powershell
+.\Fix-ChatGPT-Overlays.ps1
+```
 
-The upstream diagnostics indicate that the affected overlay can remain in an incorrect native Windows input state involving extended window styles.
+The script applies the workaround once and then exits.
 
-## Workaround
+### Automatic mode
 
-This script applies a temporary runtime workaround to matching ChatGPT overlay windows.
+Download these three files into the same folder:
 
-It does **not** permanently remove window styles or modify the ChatGPT installation.
+- [`Fix-ChatGPT-Overlays.ps1`](Fix-ChatGPT-Overlays.ps1)
+- [`Watch-ChatGPT-Overlays.ps1`](Watch-ChatGPT-Overlays.ps1)
+- [`Autostart-Fix-ChatGPT-Overlays.ps1`](Autostart-Fix-ChatGPT-Overlays.ps1)
 
-For each detected overlay, the script:
+Run:
 
-1. Locates the running `ChatGPT` process.
-2. Enumerates its top-level overlay windows.
-3. Identifies matching visible `Chrome_WidgetWin_1` layered windows.
-4. Saves the complete original extended window style.
-5. Temporarily clears only `WS_EX_LAYERED`.
-6. Calls `SetWindowPos()` with `SWP_FRAMECHANGED` to force Windows to refresh the native window state.
-7. Waits three seconds.
-8. Restores the exact original extended window style.
-9. Calls `SWP_FRAMECHANGED` again.
-10. Verifies that the original style was successfully restored.
+```powershell
+.\Autostart-Fix-ChatGPT-Overlays.ps1
+```
 
-On affected systems, this appears to re-synchronize the native overlay/input state and restores mouse interaction.
+Then choose **`[1] Install using Scheduled Task (recommended)`**.
+
+The package is installed for the current user, the watcher is started immediately, and it will start again automatically at logon.
+
+![Autostart menu](docs/Autostart-Menu.webp)
+
+## Tray watcher
+
+The watcher runs hidden and adds a tray icon. Right-click it to run the fix manually, open the script folder or log, remove autostart when installed, or exit the watcher.
+
+![Watcher tray menu](docs/Watcher-Menu.webp)
+
+The tray tooltip shows the current watcher state, for example `Watching`, `Waiting for ChatGPT`, `Waiting for overlay`, or `Error`.
+
+![Watcher status tooltip](docs/Watcher-Status.webp)
+
+## What it does
+
+- Restores click/drag interaction for affected ChatGPT floating overlays.
+- Keeps the original window style and restores it after the temporary reset.
+- Can automatically detect a new ChatGPT session and apply the workaround when a matching overlay appears.
+- Provides a tray menu with **Fix now**, log access and watcher controls.
+- Supports per-user autostart using either a **Scheduled Task** or the **Startup folder**.
+- Detects ChatGPT version changes and records watcher state locally.
 
 ## Requirements
 
-* Windows
-* ChatGPT/Codex desktop app running
-* Windows PowerShell 5.1 or compatible PowerShell on Windows
-* `Fix-ChatGPT-Overlays v2.1.ps1`
+- Windows
+- ChatGPT desktop app
+- Windows PowerShell 5.1 or compatible PowerShell on Windows
+- No additional PowerShell modules
+- No administrator privileges required for the normal per-user installation
 
-No additional modules are required.
+The scripts do not change your PowerShell execution policy. Environments that block unsigned scripts may require an administrator-approved policy or code signing.
 
-## Usage
+## Interactive autostart manager
 
-Download the script and start the ChatGPT desktop app.
-
-Open PowerShell in the directory containing the script and run:
-
-```powershell
-.\Fix-ChatGPT-Overlays v2.1.ps1
-```
-
-If script execution is blocked by your local PowerShell execution policy, you can run it for the current PowerShell process with:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\Fix-ChatGPT-Overlays v2.1.ps1
-```
-
-The execution-policy change above applies only to the current PowerShell process.
-
-## Example output
+Running `Autostart-Fix-ChatGPT-Overlays.ps1` without parameters opens the interactive menu:
 
 ```text
-ChatGPT Overlay Fix
--------------------
-Found 1 matching overlay window(s).
+ChatGPT Overlay Fix 3.0.0
 
-Overlay 1
-  Handle    : 0x123456
-  Class     : Chrome_WidgetWin_1
-  Title     : ChatGPT
-  Size      : 288 x 288
-  Original  : 0x08080188
-  Temporary : 0x08000188
-  Recovery  : Clearing WS_EX_LAYERED and refreshing native frame state...
-  Restored  : 0x08080188
-  Result    : Success
+Select an action:
 
-Recovery completed successfully.
-The pet and voice widget should now be clickable and draggable again.
-Note: This change only applies to the current ChatGPT session. Run the script again after restarting the app.
+  [1] Install using Scheduled Task (recommended)
+  [2] Install using Startup folder
+  [3] Show status
+  [4] Remove autostart
+  [5] Cancel
 ```
 
-Actual handles, dimensions and extended window styles can differ between systems and app versions.
+The Scheduled Task method is recommended for most users. It creates a limited, current-user task that starts the watcher at logon. The Startup-folder method creates a current-user shortcut instead.
+
+Installation copies the complete package to:
+
+```text
+%LOCALAPPDATA%\ChatGPT-Overlay-Fix
+```
+
+Existing package files in that location are replaced by the version being installed, and the watcher is started after installation.
+
+## Command-line mode
+
+The same manager can be used non-interactively:
+
+```powershell
+.\Autostart-Fix-ChatGPT-Overlays.ps1 -Install
+.\Autostart-Fix-ChatGPT-Overlays.ps1 -Install -Method Task
+.\Autostart-Fix-ChatGPT-Overlays.ps1 -Install -Method Startup
+.\Autostart-Fix-ChatGPT-Overlays.ps1 -Status
+.\Autostart-Fix-ChatGPT-Overlays.ps1 -Remove
+```
+
+`-Install` defaults to the Scheduled Task method. Parameter mode does not display the interactive menu or wait for interactive confirmation.
+
+`-Remove` removes the autostart entry only. Installed files and an already-running watcher are intentionally left unchanged.
+
+## Tray menu
+
+Depending on the current state, the tray menu provides:
+
+- **Fix now** - runs the one-shot fix immediately.
+- **Open script location** - opens the installed script folder.
+- **Remove autostart...** - shown only when this package owns an autostart entry; the watcher keeps running until you exit it.
+- **Open log** - shown when the watcher log exists.
+- **Exit watcher** - stops the current watcher process.
+
+Only one watcher instance is allowed per Windows user session.
+
+## Automatic watcher behavior
+
+The watcher checks the ChatGPT process state every two seconds.
+
+When a new ChatGPT session is detected, it waits for a matching overlay window and can make up to three automatic fix attempts for that session. After a successful fix it stays in `Watching` state until the ChatGPT session changes.
+
+The watcher stores local state in:
+
+```text
+%LOCALAPPDATA%\ChatGPT-Overlay-Fix\state.json
+```
+
+and logs to:
+
+```text
+%LOCALAPPDATA%\ChatGPT-Overlay-Fix\Watcher.log
+```
+
+The log is rotated when it reaches approximately 1 MB; the previous log is kept as `Watcher.log.old`.
+
+If the detected ChatGPT version changes, the watcher records the change and shows a notification. The workaround remains enabled.
+
+## How the workaround works
+
+The one-shot fix operates only on top-level windows owned by running `ChatGPT` processes.
+
+For each matching visible `Chrome_WidgetWin_1` layered overlay window, it:
+
+1. Reads and saves the complete original extended window style.
+2. Temporarily clears only `WS_EX_LAYERED`.
+3. Calls `SetWindowPos()` with `SWP_FRAMECHANGED` to refresh the native window state.
+4. Waits three seconds.
+5. Restores the exact original extended window style.
+6. Calls `SWP_FRAMECHANGED` again.
+7. Verifies that the original style was restored.
+
+The important part is the temporary reset. `WS_EX_LAYERED` is **not** left disabled.
+
+On affected systems, this appears to re-synchronize the native overlay/input state and restore mouse interaction.
 
 ## Why `WS_EX_LAYERED`?
 
-The upstream issue contains diagnostics involving `WS_EX_TRANSPARENT`, which can directly cause mouse input to pass through a window.
+The upstream issue includes diagnostics around extended window styles such as `WS_EX_TRANSPARENT`, which can directly make a window click-through.
 
-During additional testing, however, it was found that permanently changing the final extended window style is not required for this workaround.
-
-Temporarily clearing `WS_EX_LAYERED` together with `SWP_FRAMECHANGED`, then restoring the original style, appears to force Windows and/or the application to rebuild or re-synchronize the native overlay/input state.
-
-The important part is therefore not that `WS_EX_LAYERED` remains disabled — it does not.
-
-The script restores the complete original extended window style after the temporary reset.
+Additional testing showed that the workaround does not need to permanently remove any final style bit. Temporarily clearing `WS_EX_LAYERED`, refreshing the frame, and then restoring the complete original style is enough to recover the affected overlay state on tested systems.
 
 ## Safety
 
-The script intentionally makes only a temporary runtime change.
+The workaround intentionally makes only temporary runtime changes to matching ChatGPT overlay windows.
 
-It:
+It does **not**:
 
-* does not modify ChatGPT application files,
-* does not modify the registry,
-* does not install software,
-* does not permanently change the overlay style,
-* preserves all extended-style bits except for the temporary `WS_EX_LAYERED` reset,
-* restores the complete original style in a `finally` block,
-* verifies the restored style after the operation.
+- modify ChatGPT application files,
+- modify the registry,
+- install third-party software,
+- permanently remove window styles,
+- request elevation for the normal per-user setup,
+- change PowerShell execution policy.
 
-The script also resolves the actual `ChatGPT` process IDs before touching any windows, reducing the chance of affecting unrelated Chromium/Electron applications.
+The one-shot fix restores the complete original extended style in a `finally` block and verifies the restored value.
 
-## Limitations
-
-This is a **workaround**, not a permanent fix for the underlying application bug.
-
-The workaround:
-
-* only affects the currently running ChatGPT session,
-* may need to be run again after restarting ChatGPT,
-* depends on the current native overlay implementation,
-* may stop working if the ChatGPT/Codex desktop app changes how its overlay windows are implemented.
-
-Ultimately, the underlying issue should be fixed in the application itself.
+The automatic package installs only under the current user's `%LOCALAPPDATA%` and uses current-user autostart.
 
 ## Troubleshooting
 
-If no matching overlay window is found, the script prints the detected ChatGPT top-level windows and their relevant properties.
+If the manual fix reports that no matching overlay was found:
 
-Make sure:
+1. Make sure the ChatGPT desktop app is running.
+2. Make sure the affected Pet or Voice overlay is currently visible.
+3. Run the script in the same Windows user session as ChatGPT.
 
-1. The ChatGPT desktop app is running.
-2. The affected Pet or Voice overlay is currently visible.
-3. You are running the script in the same Windows user session as ChatGPT.
+If automatic mode is installed but nothing happens, use the tray menu to open `Watcher.log` and check the current tray status.
 
-If the script reports that the original style could not be restored, restart the ChatGPT desktop app before performing further testing.
+If the fix reports that the original style could not be restored, restart the ChatGPT desktop app before further testing.
+
+## Limitations
+
+This is a **workaround**, not a fix for the underlying ChatGPT application bug.
+
+The behavior depends on the current native overlay implementation and may stop working if the desktop app changes how its overlay windows are implemented.
+
+## Version history
+
+- **3.0.0** - current version: one-shot fix, automatic watcher, tray controls, status tracking and autostart manager.
+- **2.1** - previous manual-only version, preserved in the [`archive/v2.1`](../../tree/archive/v2.1) branch.
 
 ## Related upstream issue
 
-**openai/codex#41513**
-
+**[openai/codex#41513](https://github.com/openai/codex/issues/41513)**  
 `[Windows][Pets] Built-in and custom floating pets become click-through and cannot be dragged`
 
-Relevant workaround discussion: **issue comment 5538221946**
+Relevant workaround discussion: **[issue comment 5538221946](https://github.com/openai/codex/issues/41513#issuecomment-5538221946)**.
+
+## License
+
+MIT License. See [LICENSE](LICENSE).
 
 ## Disclaimer
 
