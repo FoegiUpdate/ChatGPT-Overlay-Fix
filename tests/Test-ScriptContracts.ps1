@@ -45,5 +45,14 @@ $installContent = Get-Content -Raw -LiteralPath (Join-Path $repoRoot 'Install-Wa
 if ($installContent -notmatch 'RunLevel Limited') {
     throw 'The scheduled task must run with limited current-user privileges.'
 }
+if ($installContent -notmatch 'MSFT_TaskLogonTrigger') {
+    throw 'The installer must verify the current-user logon trigger.'
+}
+if ($installContent -notmatch "State -ne 'Running'") {
+    throw 'The installer must verify that the watcher remains running.'
+}
+if ($installContent -notmatch 'WindowStyle Hidden') {
+    throw 'The watcher task must start PowerShell with a hidden window.'
+}
 
 Write-Host 'All script contract tests passed.' -ForegroundColor Green

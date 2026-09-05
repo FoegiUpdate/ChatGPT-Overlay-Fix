@@ -89,12 +89,38 @@ Test one watcher pass in a visible PowerShell window:
 Install the watcher for the current Windows user:
 
 ```powershell
-.\Install-Watcher.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Install-Watcher.ps1"
 ```
 
 The installer creates a limited, current-user scheduled task named
 `ChatGPT Overlay Fix Watcher`, starts it immediately, and configures it to start
-again when that user logs on. It does not request administrator privileges.
+again when that user logs on. The task launches PowerShell with a hidden window,
+so no PowerShell console needs to remain open. It does not request administrator
+privileges.
+
+The installer verifies that the saved task has the expected logon trigger and
+launch command. Unless `-DoNotStart` is used, it also waits for the task to reach
+the `Running` state and reports an error if the watcher exits immediately.
+
+Check the installed task at any time with:
+
+```powershell
+Get-ScheduledTask -TaskName 'ChatGPT Overlay Fix Watcher' |
+    Select-Object TaskName, State
+```
+
+After restarting the PC, the watcher starts automatically at the next Windows
+logon. Keep the repository folder at the same path because the scheduled task
+launches `Watch-ChatGPT-Overlays.ps1` from that location.
+
+To start the watcher manually in a visible console instead, run:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\Watch-ChatGPT-Overlays.ps1"
+```
+
+Keep that console open while using manual mode; closing it stops only the
+manually started watcher.
 
 Logs are written to:
 
