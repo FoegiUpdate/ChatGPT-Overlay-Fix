@@ -208,7 +208,7 @@ The behavior depends on the current native overlay implementation and may stop w
 
 ## Version history
 
-- **3.0.0** - current version: one-shot fix, automatic watcher, tray controls, status tracking and autostart manager.
+- **3.0.0** - current version: one-shot fix, automatic watcher, tray controls, status tracking and autostart manager. Preserved in the [`release/v3.0.0`](../../tree/release/v3.0.0) branch.
 - **2.1** - previous manual-only version, preserved in the [`archive/v2.1`](../../tree/archive/v2.1) branch.
 
 ## Related upstream issue
