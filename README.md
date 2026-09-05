@@ -210,8 +210,8 @@ The behavior depends on the current native overlay implementation and may stop w
 
 ## Version history
 
-- **3.0.0** - current version: one-shot fix, automatic watcher, tray controls, status tracking and autostart manager. 
-              Available as the [`v3.0.0` release](https://github.com/FoegiUpdate/ChatGPT-Overlay-Fix/releases/tag/v3.0.0).
+- **3.0.0** - current version: one-shot fix, automatic watcher, tray controls, status tracking and autostart manager.
+-             Available as the [`v3.0.0` release](https://github.com/FoegiUpdate/ChatGPT-Overlay-Fix/releases/tag/v3.0.0).
 - **2.1** - previous manual-only version, preserved in the [`archive/v2.1`](https://github.com/FoegiUpdate/ChatGPT-Overlay-Fix/tree/archive/v2.1) branch.
 - 
 ## Related upstream issue
