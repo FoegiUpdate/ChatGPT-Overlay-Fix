@@ -10,7 +10,7 @@ param(
     [switch]$Remove
 )
 
-$script:PackageVersion = '3.0.0'
+$script:PackageVersion = '3.1.0'
 $ErrorActionPreference = 'Stop'
 $script:InstallDirectory = Join-Path $env:LOCALAPPDATA 'ChatGPT-Overlay-Fix'
 $script:TaskName = 'ChatGPT Overlay Fix Watcher'
@@ -200,17 +200,21 @@ function Show-Status {
 }
 
 function Read-MenuSelection {
-    Write-Host ''
-    Write-Host "ChatGPT Overlay Fix $script:PackageVersion" -ForegroundColor Cyan
-    Write-Host ''
-    Write-Host 'Select an action:'
-    Write-Host ''
-    Write-Host '  [1] Install using Scheduled Task (recommended)'
-    Write-Host '  [2] Install using Startup folder'
-    Write-Host '  [3] Show status'
-    Write-Host '  [4] Remove autostart'
-    Write-Host '  [5] Cancel'
-    Write-Host ''
+    param([switch]$SelectionOnly)
+
+    if (-not $SelectionOnly) {
+        Write-Host ''
+        Write-Host "ChatGPT Overlay Fix $script:PackageVersion" -ForegroundColor Cyan
+        Write-Host ''
+        Write-Host 'Select an action:'
+        Write-Host ''
+        Write-Host '  [1] Install using Scheduled Task (recommended)'
+        Write-Host '  [2] Install using Startup folder'
+        Write-Host '  [3] Show status'
+        Write-Host '  [4] Remove autostart'
+        Write-Host '  [5] Cancel'
+        Write-Host ''
+    }
     Write-Host 'Selection [1-5]: ' -NoNewline
 
     # Console hosts accept one key; hosts without ReadKey support use Enter.
@@ -248,23 +252,32 @@ try {
         throw '-Method can only be used together with -Install.'
     }
 
-    # Both modes select the same action flags and share the execution below.
-    if ($interactiveMode) {
-        switch (Read-MenuSelection) {
+    # Interactive mode and -Status share the menu; other parameters run directly.
+    if ($interactiveMode -or $Status) {
+        if ($Status) {
+            Show-Status
+            $Status = $false
+            $interactiveMode = $true
+        }
+        $selectionOnly = $false
+        do {
+            $selection = Read-MenuSelection -SelectionOnly:$selectionOnly
+            if ($selection -eq 3) {
+                Show-Status
+                Write-Host ''
+                $selectionOnly = $true
+            }
+        } while ($selection -eq 3)
+
+        switch ($selection) {
             1 { $Install = $true; $Method = 'Task' }
             2 { $Install = $true; $Method = 'Startup' }
-            3 { $Status = $true }
             4 { $Remove = $true }
             5 { exit 0 }
         }
     }
 
     if (-not $Install -and -not $Status -and -not $Remove) {
-        Show-Status
-        exit 0
-    }
-
-    if ($Status) {
         Show-Status
         exit 0
     }

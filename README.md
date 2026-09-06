@@ -2,7 +2,9 @@
 
 A PowerShell workaround for broken mouse interaction with floating ChatGPT overlays on Windows, including the **Pet** and **Voice widget**.
 
-**Version 3.0.0 adds an optional automatic watcher, tray icon and autostart support.**
+**Version 3.1.0 keeps status output visible and returns to the action selection.**
+
+Includes the automatic watcher, tray icon and per-user autostart support introduced in 3.0.0.
 
 If you only want to run the workaround once manually, you only need **`Fix-ChatGPT-Overlays.ps1`**.
 
@@ -24,7 +26,7 @@ The script applies the workaround once and then exits.
 
 ### Automatic mode
 
-Download these three files into the same folder:
+Download and extract the [3.1.0 script package](downloads/ChatGPT-Overlay-Fix-v3.1.0.zip), or download these three files into the same folder:
 
 - [`Fix-ChatGPT-Overlays.ps1`](Fix-ChatGPT-Overlays.ps1)
 - [`Watch-ChatGPT-Overlays.ps1`](Watch-ChatGPT-Overlays.ps1)
@@ -76,7 +78,7 @@ The scripts do not change your PowerShell execution policy. Environments that bl
 Running `Autostart-Fix-ChatGPT-Overlays.ps1` without parameters opens the interactive menu:
 
 ```text
-ChatGPT Overlay Fix 3.0.0
+ChatGPT Overlay Fix 3.1.0
 
 Select an action:
 
@@ -86,6 +88,8 @@ Select an action:
   [4] Remove autostart
   [5] Cancel
 ```
+
+Selecting **[3] Show status** displays the status and returns to `Selection [1-5]:` without closing the window. You can check the status again or choose another action; **[5] Cancel** exits the manager.
 
 The Scheduled Task method is recommended for most users. It creates a limited, current-user task that starts the watcher at logon. The Startup-folder method creates a current-user shortcut instead.
 
@@ -99,7 +103,7 @@ Existing package files in that location are replaced by the version being instal
 
 ## Command-line mode
 
-The same manager can be used non-interactively:
+The same manager also accepts command-line parameters:
 
 ```powershell
 .\Autostart-Fix-ChatGPT-Overlays.ps1 -Install
@@ -109,7 +113,9 @@ The same manager can be used non-interactively:
 .\Autostart-Fix-ChatGPT-Overlays.ps1 -Remove
 ```
 
-`-Install` defaults to the Scheduled Task method. Parameter mode does not display the interactive menu or wait for interactive confirmation.
+`-Install` defaults to the Scheduled Task method. `-Install` and `-Remove` run directly without interactive questions and display the resulting status.
+
+**In 3.1.0, `-Status` is interactive:** it displays the current status and then opens the action menu, keeping the window open. Select **[5] Cancel** to exit. Do not use `-Status` in unattended jobs that expect the command to finish automatically.
 
 `-Remove` removes the autostart entry only. Installed files and an already-running watcher are intentionally left unchanged.
 
@@ -210,8 +216,8 @@ The behavior depends on the current native overlay implementation and may stop w
 
 ## Version history
 
-- **3.0.0** - current version: one-shot fix, automatic watcher, tray controls, status tracking and autostart manager.
-Available as the [`v3.0.0` release](https://github.com/FoegiUpdate/ChatGPT-Overlay-Fix/releases/tag/v3.0.0).
+- **3.1.0** - current version: status output stays visible; menu option 3 returns to selection, and `-Status` enters the action menu. All three scripts share package version 3.1.0. [Download the script package](downloads/ChatGPT-Overlay-Fix-v3.1.0.zip). See [CHANGELOG.md](CHANGELOG.md).
+- **3.0.0** - previous version: one-shot fix, automatic watcher, tray controls, status tracking and autostart manager. Available as the [`v3.0.0` release](https://github.com/FoegiUpdate/ChatGPT-Overlay-Fix/releases/tag/v3.0.0).
 
 - **2.1** - previous manual-only version, preserved in the [`archive/v2.1`](https://github.com/FoegiUpdate/ChatGPT-Overlay-Fix/tree/archive/v2.1) branch.
   

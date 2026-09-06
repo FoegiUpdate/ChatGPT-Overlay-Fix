@@ -2,7 +2,7 @@
 # One-shot runtime workaround for ChatGPT Desktop overlays (Pet / Voice widget).
 # PowerShell 5.1 compatible. No persistent system changes are made.
 
-$script:PackageVersion = '3.0.0'
+$script:PackageVersion = '3.1.0'
 $ErrorActionPreference = 'Stop'
 
 if (-not ('ChatGPTOverlayWin32V3' -as [type])) {

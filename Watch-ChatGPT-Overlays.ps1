@@ -5,7 +5,7 @@
 [CmdletBinding()]
 param([switch]$Hidden)
 
-$script:PackageVersion = '3.0.0'
+$script:PackageVersion = '3.1.0'
 $ErrorActionPreference = 'Stop'
 $script:AppDirectory = Join-Path $env:LOCALAPPDATA 'ChatGPT-Overlay-Fix'
 $script:FixPath = Join-Path $PSScriptRoot 'Fix-ChatGPT-Overlays.ps1'
